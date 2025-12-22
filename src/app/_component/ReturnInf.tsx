@@ -32,6 +32,25 @@ export const ReturnInf = (props: Result) => {
   const handleSeeContent = () => {
     setSeeContent(!seeContent);
   };
+  const [error, setError] = useState("");
+  const [question, setQuestion] = useState("");
+  const generate = async () => {
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: content,
+        }),
+      });
+      const data = await res.json();
+      handlequizActive();
+      setQuestion(data.question);
+      console.log(data.summary, "dta");
+    } catch (err) {
+      setError("Алдаа гарлаа. Дахин оролдоно уу");
+    }
+  };
   return (
     <div className="bg-[#f8f8f8]">
       {!quizActive && !nextClickCompleted && (
@@ -74,7 +93,7 @@ export const ReturnInf = (props: Result) => {
                 </button>
                 <button
                   className="w-[113px] h-10 flex justify-center items-center text-white bg-black rounded-md"
-                  onClick={handlequizActive}
+                  onClick={generate}
                 >
                   Take a quiz
                 </button>
@@ -107,7 +126,7 @@ export const ReturnInf = (props: Result) => {
           <div className="w-[558px] h-50 bg-white rounded-md flex   justify-center items-center">
             <div className="w-[502px] h-40 gap-5 flex-col flex">
               <div className="flex justify-between w-[502px] h-7">
-                <p className="text-black text-xl w-auto">Question</p>
+                <p className="text-black text-xl w-auto">{question}</p>
                 <div className="w-[35px] h-7 flex">
                   <p className="text-base text-black">1</p>
                   <p className="text-base text-[#71717A]">/5</p>

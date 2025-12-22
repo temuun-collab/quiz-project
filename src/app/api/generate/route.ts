@@ -6,28 +6,32 @@ const genimApi = new GoogleGenAI({
 });
 export const POST = async (req: NextRequest) => {
   const body = await req.json();
-  const text = body.text;
-  const generate = prisma.quiz.create({
-    data: text,
-  });
-  if (!text) {
+  const content = body.content;
+
+  if (!content) {
     return NextResponse.json({ error: "no text" }, { status: 400 });
   }
   const res = await genimApi.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: `Generate me quiz from this article: ${body}`,
-  });
-  const prompt = {
-    quizzes: [
+    contents: `Generate me quiz from this article: ${content}. output format should be quizzes: [
       {
         question: "",
         options: ["", "", "", ""],
         answer: "",
       },
-    ],
-  };
-  const result = await Models.generateContent(prompt);
-  return NextResponse.json({ question: quizzes });
-  console.log(res);
+    ],`,
+  });
+  const { candidates } = res as any;
+  const text = candidates[0].content.parts[0].text;
+  console.log("--------", text);
+  const quiz = JSON.parse(text.replace("```json", "").replace("```", ""));
+  console.log(quiz, "quiz");
+  const generate = prisma.quiz.create({
+    data: {
+      question: text.question,
+      answer: text.answer,
+      options: [text.options],
+    },
+  });
   return new NextResponse(JSON.stringify({ generate }), { status: 201 });
 };

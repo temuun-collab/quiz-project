@@ -61,7 +61,7 @@ export const Container = () => {
     }
   };
   return (
-    <div className="flex mt-32  flex-col gap-5">
+    <div className="flex flex-col justify-center">
       {(title.trim().length > 0 || content.trim().length > 0) && (
         <button
           className={`${
