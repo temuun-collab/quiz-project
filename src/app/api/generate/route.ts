@@ -26,11 +26,16 @@ export const POST = async (req: NextRequest) => {
   console.log("--------", text);
   const quiz = JSON.parse(text.replace("```json", "").replace("```", ""));
   console.log(quiz, "quiz");
+  const firstQuiz = quiz[0];
+
+const question = firstQuiz.question;
+const answer = firstQuiz.answer;
+const options = firstQuiz.options;
   const generate = prisma.quiz.create({
     data: {
-      question: text.question,
-      answer: text.answer,
-      options: [text.options],
+      question: question,
+      answer: answer,
+      options: options,
     },
   });
   return new NextResponse(JSON.stringify({ generate }), { status: 201 });
