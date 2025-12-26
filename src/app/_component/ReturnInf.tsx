@@ -5,15 +5,32 @@ import { Bookmark, CheckCircle, X, XCircle } from "lucide-react";
 import { useState } from "react";
 import { ReloadIcon } from "../_downIcon/RestartIcon";
 import { ChevronLeft } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 type Result = {
   title: string;
   generateResult: string;
   handleBackActive: () => void;
   content: string;
+  articleId: number | null;
 };
-
+type Quiz = {
+  question: string;
+  options: string[];
+  answer: string;
+};
+type UserAnswer = {
+  question: string;
+  selected: string;
+  correct: string;
+  isCorrect: boolean;
+};
 export const ReturnInf = (props: Result) => {
-  const { title, generateResult, content, handleBackActive } = props;
+  const { title, generateResult, content, handleBackActive, articleId } = props;
+  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [score, setScore] = useState(0);
   const [quizActive, setQuizActive] = useState(false);
   const handlequizActive = () => {
     setQuizActive(true);
@@ -33,24 +50,67 @@ export const ReturnInf = (props: Result) => {
     setSeeContent(!seeContent);
   };
   const [error, setError] = useState("");
-  const [question, setQuestion] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const currentQuiz = quizzes[currentIndex];
+  const handleAnswer = (option: string) => {
+    const current = quizzes[currentIndex];
+    const isCorrect = option === current.answer;
+
+    setSelected(option);
+    setUserAnswers((prev) => [
+      ...prev,
+      {
+        question: current.question,
+        selected: option,
+        correct: current.answer,
+        isCorrect: isCorrect,
+      },
+    ]);
+
+    if (isCorrect) {
+      setScore((prev) => prev + 1);
+    }
+
+    setTimeout(() => {
+      if (currentIndex + 1 < quizzes.length) {
+        setCurrentIndex((prev) => prev + 1);
+        setSelected(null);
+      } else {
+        setNextClickCompleted(true);
+      }
+    }, 500);
+  };
+
   const generate = async () => {
+    setIsGenerating(true);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content: content,
+          articleId: articleId,
         }),
       });
+      setIsGenerating(false);
       const data = await res.json();
+      setQuizzes(data.quizzes);
       handlequizActive();
-      setQuestion(data.question);
-      console.log(data.summary, "dta");
+      setCurrentIndex(0);
+      setQuizActive(true);
     } catch (err) {
       setError("Алдаа гарлаа. Дахин оролдоно уу");
     }
   };
+  const restartQuiz = () => {
+    setCurrentIndex(0);
+    setScore(0);
+    setUserAnswers([]);
+    setNextClickCompleted(false);
+    setQuizActive(true);
+  };
+  console.log(userAnswers, "uuuuu");
+
   return (
     <div className="bg-[#f8f8f8]">
       {!quizActive && !nextClickCompleted && (
@@ -62,7 +122,7 @@ export const ReturnInf = (props: Result) => {
             <ChevronLeft className="w-4 h-5 " />
           </button>
           <div
-            className={`w-[858px] h-[400px] bg-white border border-gray-100 rounded-md flex justify-center items-center m-5
+            className={`w-[858px] h-[400px] bg-white border border-gray-100 rounded-md flex justify-center gap-5 items-center m-5
         `}
           >
             <div className={`w-[800px] h-auto flex flex-col gap-5`}>
@@ -95,7 +155,11 @@ export const ReturnInf = (props: Result) => {
                   className="w-[113px] h-10 flex justify-center items-center text-white bg-black rounded-md"
                   onClick={generate}
                 >
-                  Take a quiz
+                  {isGenerating ? (
+                    <Spinner className="w-4 h-4 text-white" />
+                  ) : (
+                    <p className="  text-white text-[14px]">Take a quiz</p>
+                  )}
                 </button>
               </div>
             </div>
@@ -103,7 +167,7 @@ export const ReturnInf = (props: Result) => {
         </div>
       )}
       {quizActive && !nextClickCompleted && (
-        <div className={`w-[558px] h-[289px] flex flex-col gap-6`}>
+        <div className={`w-[558px] h-auto m-3 flex flex-col gap-6`}>
           <div className="flex w-[558px] h-16">
             <div className="w-[446px] h-8 flex flex-col">
               <div className=" flex gap-2">
@@ -123,49 +187,37 @@ export const ReturnInf = (props: Result) => {
               </button>
             </div>
           </div>
-          <div className="w-[558px] h-50 bg-white rounded-md flex   justify-center items-center">
-            <div className="w-[502px] h-40 gap-5 flex-col flex">
-              <div className="flex justify-between w-[502px] h-7">
-                <p className="text-black text-xl w-auto">{question}</p>
+          <div className="w-[558px] h-auto bg-white rounded-md flex justify-center items-center">
+            <div className="w-[502px] h-auto gap-5 flex-col flex m-5">
+              <div className="flex justify-between w-[502px] h-auto">
+                <p className="text-black text-xl w-auto">
+                  {" "}
+                  {currentQuiz?.question}
+                </p>
                 <div className="w-[35px] h-7 flex">
-                  <p className="text-base text-black">1</p>
-                  <p className="text-base text-[#71717A]">/5</p>
+                  <p className="text-base text-black">{currentIndex + 1}</p>
+                  <p className="text-base text-[#71717A]">/{quizzes.length}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 w-[502px] h-[97px]">
-                <button
-                  className="cursor-pointer w-[243px] h-10 flex justify-center items-center border border-gray-100 rounded-md text-black text-[14px]"
-                  onClick={handleClickCompleted}
-                >
-                  Answer
-                </button>
-                <button
-                  className="cursor-pointer w-[243px] h-10 flex justify-center items-center border border-gray-100 rounded-md text-black text-[14px]"
-                  onClick={handleClickCompleted}
-                >
-                  Answer
-                </button>
-                <button
-                  className="cursor-pointer w-[243px] h-10 flex justify-center items-center border border-gray-100 rounded-md text-black text-[14px]"
-                  onClick={handleClickCompleted}
-                >
-                  Answer
-                </button>
-                <button
-                  className="cursor-pointer w-[243px] h-10 flex justify-center items-center border border-gray-100 rounded-md text-black text-[14px]"
-                  onClick={handleClickCompleted}
-                >
-                  Answer
-                </button>
+              <div className="grid grid-cols-2 gap-4 w-[502px] h-auto">
+                {currentQuiz?.options.map((opt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleAnswer(opt)}
+                    className="cursor-pointer w-[243px] h-auto border rounded-md"
+                  >
+                    {opt}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
         </div>
       )}
       {nextClickCompleted && (
-        <div className={`w-[428px] h-[630px] flex flex-col gap-6`}>
+        <div className="w-[428px] h-[630px] flex flex-col gap-6">
           <div className="w-[223px] h-16 flex flex-col">
-            <div className=" flex gap-2">
+            <div className="flex gap-2">
               <GeneratorIcon />
               <p className="text-black font-bold h-8 text-6">Quiz completed</p>
             </div>
@@ -173,82 +225,50 @@ export const ReturnInf = (props: Result) => {
           </div>
 
           <div className="w-[428px] h-[528px] bg-white flex justify-center items-center border border-gray-100 rounded-md">
-            <div className="w-[372px] h-[475px] flex flex-col gap-7 ">
-              <div className="flex w-[178px] h-8 gap-1">
-                <p className=" text-black font-bold text-2xl">Your score: 2</p>
-                <p className="text-base text-[#71717A] mt-1">/5</p>
+            <div className="w-[372px] h-[475px] flex flex-col gap-7">
+              <div className="flex gap-1">
+                <p className="text-black font-bold text-2xl">
+                  Your score: {score}
+                </p>
+                <p className="text-base text-[#71717A] mt-1">
+                  / {quizzes.length}
+                </p>
               </div>
-              <div className="w-[372px] h-[344px] gap-7">
-                <div className="w-[372px] h-16 flex gap-3">
-                  <div className="flex flex-col">
-                    <XCircle className="text-red-600" />
-                    <CheckCircle className="text-[#22C55E]" />
+              <div className="w-[372px] flex flex-col gap-5 overflow-y-auto">
+                {userAnswers.map((item, index) => (
+                  <div key={index} className="flex gap-3">
+                    <div>
+                      {item.isCorrect ? (
+                        <CheckCircle className="text-[#22C55E]" />
+                      ) : (
+                        <XCircle className="text-red-600" />
+                      )}
+                    </div>
+
+                    <div className="flex flex-col">
+                      <p className="text-black text-xs">
+                        Your answer: {item.selected}
+                      </p>
+
+                      {!item.isCorrect && (
+                        <p className="text-[#22C55E] text-xs">
+                          Correct: {item.correct}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="w-[336px] h-16 flex flex-col">
-                    <p className="text-[#737373] text-xs">Question1</p>
-                    <p className="text-black text-xs">Your answer:</p>
-                    <p className="text-[#22C55E] text-xs">Correct:</p>
-                  </div>
-                </div>
-                <div className="w-[372px] h-16 flex gap-3">
-                  <div className="flex flex-col">
-                    <XCircle className="text-red-600" />
-                    <CheckCircle className="text-[#22C55E]" />
-                  </div>
-                  <div className="w-[336px] h-16 flex flex-col">
-                    <p className="text-[#737373] text-xs">Question2</p>
-                    <p className="text-black text-xs">Your answer:</p>
-                    <p className="text-[#22C55E] text-xs">Correct:</p>
-                  </div>
-                </div>
-                <div className="w-[372px] h-16 flex gap-3">
-                  <div className="flex flex-col">
-                    <XCircle className="text-red-600" />
-                    <CheckCircle className="text-[#22C55E]" />
-                  </div>
-                  <div className="w-[336px] h-16 flex flex-col">
-                    <p className="text-[#737373] text-xs">Question3</p>
-                    <p className="text-black text-xs">Your answer:</p>
-                    <p className="text-[#22C55E] text-xs">Correct:</p>
-                  </div>
-                </div>
-                <div className="w-[372px] h-16 flex gap-3">
-                  <div className="flex flex-col">
-                    <XCircle className="text-red-600" />
-                    <CheckCircle className="text-[#22C55E]" />
-                  </div>
-                  <div className="w-[336px] h-16 flex flex-col">
-                    <p className="text-[#737373] text-xs">Question4</p>
-                    <p className="text-black text-xs">Your answer:</p>
-                    <p className="text-[#22C55E] text-xs">Correct:</p>
-                  </div>
-                </div>
-                <div className="w-[372px] h-16 flex gap-3">
-                  <div className="flex flex-col">
-                    <XCircle className="text-red-600" />
-                    <CheckCircle className="text-[#22C55E]" />
-                  </div>
-                  <div className="w-[336px] h-16 flex flex-col">
-                    <p className="text-[#737373] text-xs">Question5</p>
-                    <p className="text-black text-xs">Your answer:</p>
-                    <p className="text-[#22C55E] text-xs">Correct:</p>
-                  </div>
-                </div>
+                ))}
               </div>
               <div className="w-[372px] h-10 flex justify-between">
                 <button
-                  className="w-[175px] h-10 flex justify-center items-center text-black gap-2 border border-gray-100 rounded-md text-[14px] cursor-pointer"
-                  onClick={handlequizActive}
+                  className="w-[175px] h-10 flex justify-center items-center text-black gap-2 border border-gray-100 rounded-md text-[14px]"
+                  onClick={restartQuiz}
                 >
                   <ReloadIcon />
                   Restart quiz
                 </button>
-                <button
-                  className="w-[175px] h-10 flex justify-center items-center text-white gap-2 bg-black rounded-md text-[14px] cursor-pointer"
-                  onClick={() => {
-                    setQuizActive(true);
-                  }}
-                >
+
+                <button className="w-[175px] h-10 flex justify-center items-center text-white gap-2 bg-black rounded-md text-[14px]">
                   <Bookmark />
                   Save and leave
                 </button>
@@ -257,6 +277,7 @@ export const ReturnInf = (props: Result) => {
           </div>
         </div>
       )}
+
       {backHomePage && (
         <div className="fixed  z-50 top-0 left-0 w-screen h-screen flex justify-center items-center bg-[rgba(0,_0,_0,_0.5)]">
           <div

@@ -2,11 +2,12 @@
 
 import { useUser } from "@clerk/nextjs";
 import { HistoryHideIcon } from "../_downIcon/HistoryHideIcon";
-import { act, useEffect, useState } from "react";
-
+import { useEffect, useState } from "react";
+import Link from "next/link";
 type Article = {
-  id: string;
+  id: number;
   title: string;
+  content: string;
 };
 export const HistoryHeader = () => {
   const [activeHistory, setActiveHistory] = useState(false);
@@ -64,9 +65,9 @@ export const HistoryHeader = () => {
           </div>
           <div className="w-[268px] h-screen overflow-y-scroll flex flex-col gap-2">
             {articles.map((article) => (
-              <p className="text-black text-6" key={article.id}>
-                {article.title}
-              </p>
+              <Link key={article.id} href={`/article/${article.id}`}>
+                <p className="text-black text-6">{article.title}</p>
+              </Link>
             ))}
           </div>
         </div>

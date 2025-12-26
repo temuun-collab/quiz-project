@@ -6,18 +6,18 @@ export async function POST(req: NextRequest) {
   const users = await prisma.user.findMany();
   try {
     const body = await req.json();
-    const { clerkId, email } = body;
+    const { clerkId, email, name } = body;
 
-    if (!clerkId || !email) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    const existingUser = await prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (existingUser) {
+      return NextResponse.json(existingUser, { status: 200 });
     }
 
     const user = await prisma.user.create({
-      data: {
-        name: "",
-        clerkId,
-        email,
-      },
+      data: { clerkId, name, email },
     });
 
     return NextResponse.json(user, { status: 201 });

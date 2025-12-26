@@ -1,16 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GeneratorIcon } from "../_downIcon/GeneratorIcon";
 import { TitleIcon } from "../_downIcon/TitleIcon";
 import { Textarea } from "@/components/ui/textarea";
-import { Bookmark, CheckCircle, X, XCircle } from "lucide-react";
-import Link from "next/link";
-import { ReloadIcon } from "../_downIcon/RestartIcon";
 import { Spinner } from "@/components/ui/spinner";
 import { useUser } from "@clerk/nextjs";
 import { ReturnInf } from "./ReturnInf";
 import { ChevronLeft } from "lucide-react";
+
 export const Container = () => {
+  const [isGenerating, setIsGenerating] = useState(false);
   const { user } = useUser();
   const [activeButton, setActiveButton] = useState(false);
   const handleActiveButton = () => {
@@ -25,12 +24,11 @@ export const Container = () => {
     setContent("");
     setTitle("");
   };
-  const [isGenerating, setIsGenerating] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [generateResult, setGenerateResult] = useState("");
   const [error, setError] = useState("");
-
+  const [articleId, setArticleId] = useState<number | null>(null);
   const generate = async () => {
     if (!title.trim() || !content.trim()) {
       setError("Title болон Content хоёуланг нь бөглөнө үү");
@@ -53,13 +51,31 @@ export const Container = () => {
       setIsGenerating(false);
       handleActiveButton();
       setGenerateResult(data.summary);
-      console.log(data.summary, "dta");
+      setArticleId(data.id);
     } catch (err) {
       setError("Алдаа гарлаа. Дахин оролдоно уу");
     } finally {
       setIsGenerating(false);
     }
   };
+  const createUser = async () => {
+    try {
+      const res = await fetch("/api/user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clerkId: user?.id,
+          name: user?.firstName,
+          email: user?.primaryEmailAddress?.emailAddress,
+        }),
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  useEffect(() => {
+    createUser();
+  }, [user]);
   return (
     <div className="flex flex-col justify-center">
       {(title.trim().length > 0 || content.trim().length > 0) && (
@@ -156,6 +172,7 @@ export const Container = () => {
           title={title}
           content={content}
           handleBackActive={handleBackActive}
+          articleId={articleId}
         />
       )}
     </div>

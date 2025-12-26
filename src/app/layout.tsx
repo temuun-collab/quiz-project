@@ -9,6 +9,9 @@ import {
 } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Header } from "./_component/Header";
+import { HistoryHeader } from "./_component/HistoryHeader";
+import { Container } from "./_component/Container";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,24 +32,20 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // return (
-  //   <html lang="en">
-  //     <body
-  //       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-  //     >
-  //       {children}
-  //     </body>
-  //   </html>
-  // );
   return (
     <ClerkProvider>
       <html lang="en">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          {children}
-        </body>
+        ></body>
       </html>
+
+      <div className="w-screen h-screen flex flex-col bg-white justify-center items-center">
+        <div className="w-[1440px] h-screen">
+          <Header />
+          {children}
+        </div>
+      </div>
     </ClerkProvider>
   );
 }
