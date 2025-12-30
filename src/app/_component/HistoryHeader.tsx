@@ -16,12 +16,13 @@ export const HistoryHeader = () => {
     setActiveHistory(!activeHistory);
   };
   const { user } = useUser();
-
+  const users = user?.id;
   const getData = async () => {
-    const data = await fetch(`/api/articles?userId=${user?.id}`, {
+    const data = await fetch(`/api/articles?userId=${users}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
+
     const jsonData = await data.json();
     setArticles(jsonData.articles);
   };
@@ -65,7 +66,7 @@ export const HistoryHeader = () => {
           </div>
           <div className="w-[268px] h-screen overflow-y-scroll flex flex-col gap-2">
             {articles.map((article) => (
-              <Link key={article.id} href={`/article/${article.id}`}>
+              <Link key={users} href={`/article/${users}`}>
                 <p className="text-black text-6">{article.title}</p>
               </Link>
             ))}

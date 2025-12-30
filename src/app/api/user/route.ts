@@ -13,8 +13,6 @@ export async function POST(req: NextRequest) {
     const existingUser = await prisma.user.findUnique({
       where: { clerkId: clerkId },
     });
-    console.log(existingUser, "eeeeeeeee");
-
     if (existingUser) {
       return NextResponse.json(existingUser, { status: 200 });
     }
@@ -22,6 +20,7 @@ export async function POST(req: NextRequest) {
     const users = await prisma.user.create({
       data: { clerkId, name, email },
     });
+    console.log(users, "userid");
 
     return NextResponse.json(users, { status: 201 });
   } catch (err) {

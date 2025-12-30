@@ -20,11 +20,14 @@ export default function ArticleClick() {
     const fetchHistory = async () => {
       try {
         const res = await fetch(`/api/article?userId=${userId}`);
-        if (!res.ok) throw new Error("Failed to fetch history");
+        // if (!res.ok) throw new Error("Failed to fetch history");
         const data = await res.json();
+        console.log(data, "dataaaa");
+
         setSummary(data.articles[0].summary);
         setTitle(data.articles[0].title);
         setContent(data.articles[0].content);
+        console.log(summary, "summmaryy");
       } catch (err) {
         console.error("History fetch error:", err);
       }
@@ -40,7 +43,6 @@ export default function ArticleClick() {
       router.push("/.");
     }, 3000);
   };
-
   return (
     <div className="flex w-[1440px]">
       <HistoryHeader />
