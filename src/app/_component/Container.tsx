@@ -7,7 +7,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { useUser } from "@clerk/nextjs";
 import { ReturnInf } from "./ReturnInf";
 import { ChevronLeft } from "lucide-react";
-
 export const Container = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { user } = useUser();
@@ -34,7 +33,9 @@ export const Container = () => {
       setError("Title болон Content хоёуланг нь бөглөнө үү");
       return;
     }
-
+    if (!user) {
+      setError("Бүртгэл үүсгэнэ үү");
+    }
     setError("");
     setIsGenerating(true);
     try {
@@ -74,7 +75,9 @@ export const Container = () => {
     }
   };
   useEffect(() => {
-    createUser();
+    if (user) {
+      createUser();
+    }
   }, [user]);
   return (
     <div className="flex flex-col justify-center">

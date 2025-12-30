@@ -3,24 +3,27 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-  const users = await prisma.user.findMany();
+  // const users = await prisma.user.findMany();
   try {
     const body = await req.json();
     const { clerkId, email, name } = body;
-
+    if (!email) {
+      return NextResponse.json({ error: "unauthor" }, { status: 200 });
+    }
     const existingUser = await prisma.user.findUnique({
-      where: { clerkId },
+      where: { clerkId: clerkId },
     });
+    console.log(existingUser, "eeeeeeeee");
 
     if (existingUser) {
       return NextResponse.json(existingUser, { status: 200 });
     }
 
-    const user = await prisma.user.create({
+    const users = await prisma.user.create({
       data: { clerkId, name, email },
     });
 
-    return NextResponse.json(user, { status: 201 });
+    return NextResponse.json(users, { status: 201 });
   } catch (err) {
     console.error(err);
     return NextResponse.json(

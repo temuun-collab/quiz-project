@@ -12,6 +12,7 @@ import "./globals.css";
 import { Header } from "./_component/Header";
 import { HistoryHeader } from "./_component/HistoryHeader";
 import { Container } from "./_component/Container";
+import { CreateUser } from "@/components/createUser";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -42,6 +43,7 @@ export default function RootLayout({
 
       <div className="w-screen h-screen flex flex-col bg-white justify-center items-center">
         <div className="w-[1440px] h-screen">
+          <CreateUser />
           <Header />
           {children}
         </div>

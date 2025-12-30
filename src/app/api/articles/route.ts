@@ -9,7 +9,6 @@ export const POST = async (req: NextRequest) => {
   try {
     const body = await req.json();
     const { title, content, userId } = body;
-
     const user = await prisma.user.findFirst({
       where: {
         clerkId: userId,
@@ -27,6 +26,7 @@ export const POST = async (req: NextRequest) => {
     const { candidates } = res as any;
     const summary = candidates[0].content.parts[0].text;
     console.log(summary, "summ");
+    console.log(userId, user, "userr");
 
     const article = await prisma.article.create({
       data: {

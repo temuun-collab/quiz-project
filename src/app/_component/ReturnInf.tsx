@@ -109,8 +109,6 @@ export const ReturnInf = (props: Result) => {
     setNextClickCompleted(false);
     setQuizActive(true);
   };
-  console.log(userAnswers, "uuuuu");
-
   return (
     <div className="bg-[#f8f8f8]">
       {!quizActive && !nextClickCompleted && (
