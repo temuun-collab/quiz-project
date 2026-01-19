@@ -55,7 +55,6 @@ export const ReturnInf = (props: Result) => {
   const handleAnswer = (option: string) => {
     const current = quizzes[currentIndex];
     const isCorrect = option === current.answer;
-
     setSelected(option);
     setUserAnswers((prev) => [
       ...prev,
